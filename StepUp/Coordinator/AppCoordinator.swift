@@ -16,10 +16,13 @@ final class AppCoordinator: Coordinator {
     var selectedTab: AppRoute = .cards
 
     private(set) var cardCoordinator: CardCoordinator
+    private(set) var learningGuideCoordinator: LearningGuideCoordinator
 
     init() {
         self.cardCoordinator = CardCoordinator()
+        self.learningGuideCoordinator = LearningGuideCoordinator()
         addChild(cardCoordinator)
+        addChild(learningGuideCoordinator)
     }
 
     func start() -> AnyView {

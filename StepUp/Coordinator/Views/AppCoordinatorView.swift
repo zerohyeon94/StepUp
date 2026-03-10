@@ -18,6 +18,12 @@ struct AppCoordinatorView: View {
                 }
                 .tag(AppRoute.cards)
 
+            coordinator.learningGuideCoordinator.start()
+                .tabItem {
+                    Label("학습 가이드", systemImage: "book")
+                }
+                .tag(AppRoute.learningGuide)
+
             SettingsView()
                 .tabItem {
                     Label("설정", systemImage: "gear")

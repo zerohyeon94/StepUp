@@ -9,5 +9,6 @@ import Foundation
 
 enum AppRoute: Hashable {
     case cards
+    case learningGuide
     case settings
 }
