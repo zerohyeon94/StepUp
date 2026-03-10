@@ -138,11 +138,16 @@ final class CardCoordinator: Coordinator {
 
 ```bash
 # 빌드
-xcodebuild -scheme InterviewFlashcard -sdk iphonesimulator build
+xcodebuild -scheme StepUp -sdk iphonesimulator build
 
 # 테스트 실행
-xcodebuild test -scheme InterviewFlashcard \
+xcodebuild test -scheme StepUp \
   -destination 'platform=iOS Simulator,name=iPhone 16'
+
+# 특정 테스트만 실행
+xcodebuild test -scheme StepUp \
+  -destination 'platform=iOS Simulator,name=iPhone 16' \
+  -only-testing 'StepUpTests/InterviewCardTests'
 
 # SwiftLint 실행
 swiftlint
