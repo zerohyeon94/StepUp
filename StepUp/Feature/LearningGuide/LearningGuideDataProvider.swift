@@ -504,9 +504,18 @@ enum LearningGuideDataProvider {
                     title: "옵셔널이란?",
                     content: """
                     옵셔널은 '값이 있을 수도 있고 없을 수도 있음'을 표현하는 Swift의 핵심 타입입니다. \
-                    타입 뒤에 ?를 붙여 선언합니다. \
-                    값이 없는 상태는 nil로 표현됩니다. \
-                    다른 언어의 null/None과 비슷하지만, 컴파일 시점에 안전하게 처리할 수 있습니다.
+                    타입 뒤에 ?를 붙여 선언하며, 값이 없는 상태는 nil로 표현됩니다.
+
+                    Swift가 옵셔널을 도입한 이유: 다른 언어에서는 null 참조로 인한 크래시가 빈번합니다. \
+                    Swift는 컴파일 시점에 nil 가능성을 강제로 처리하게 하여 런타임 크래시를 방지합니다.
+
+                    내부적으로 Optional은 enum입니다. \
+                    Optional<String>은 .some("값") 또는 .none(nil) 두 가지 상태를 가집니다. \
+                    String?은 Optional<String>의 축약 표현입니다.
+
+                    암시적 언래핑 옵셔널(IUO): 타입 뒤에 !를 붙여 선언합니다. \
+                    접근할 때 자동으로 언래핑되지만, nil이면 크래시가 발생합니다. \
+                    IBOutlet 등 초기화 직후 반드시 값이 있는 경우에만 사용합니다.
                     """,
                     codeExample: """
                     var name: String? = "Swift"  // 값이 있음
@@ -514,51 +523,124 @@ enum LearningGuideDataProvider {
 
                     // 옵셔널은 값을 직접 사용할 수 없음
                     // print(name.count)  // 컴파일 에러!
+
+                    // Optional은 사실 enum
+                    let greeting: Optional<String> = .some("안녕")
+                    let empty: Optional<String> = .none  // nil과 동일
+
+                    // switch로 옵셔널 처리
+                    switch name {
+                    case .some(let value):
+                        print("값: \\(value)")
+                    case .none:
+                        print("값 없음")
+                    }
+
+                    // 암시적 언래핑 옵셔널 (IUO)
+                    var label: String! = "제목"
+                    print(label.count)  // 자동 언래핑 (nil이면 크래시!)
                     """
                 ),
                 LearningSection(
                     title: "옵셔널 바인딩 (if let, guard let)",
                     content: """
-                    옵셔널 바인딩은 옵셔널에서 안전하게 값을 꺼내는 방법입니다. \
-                    if let은 값이 있을 때 블록 안에서 사용하고, \
-                    guard let은 값이 없으면 일찍 리턴하여 이후 코드에서 안전하게 사용합니다. \
-                    guard let은 함수 내에서 조건을 빠르게 체크할 때 유용합니다.
+                    옵셔널 바인딩은 옵셔널에서 안전하게 값을 꺼내는 방법입니다.
+
+                    if let: 값이 있을 때만 블록 안에서 사용합니다. \
+                    Swift 5.7부터 if let name 처럼 같은 이름으로 축약할 수 있습니다.
+
+                    guard let: 값이 없으면 함수를 조기 종료(return)합니다. \
+                    언래핑된 값을 이후 코드 전체에서 사용할 수 있어 들여쓰기가 줄어듭니다.
+
+                    nil 병합 연산자(??): 옵셔널이 nil이면 기본값을 사용합니다.
+
+                    여러 옵셔널을 쉼표(,)로 동시에 바인딩할 수 있습니다. \
+                    하나라도 nil이면 전체가 실패합니다.
+
+                    옵셔널의 map/flatMap: 값이 있을 때만 변환을 적용합니다. \
+                    map은 변환 결과를 옵셔널로 감싸고, flatMap은 이중 옵셔널을 풀어줍니다.
                     """,
                     codeExample: """
-                    // if let
+                    // if let (기본)
                     if let unwrapped = name {
                         print("이름: \\(unwrapped)")
+                    }
+
+                    // Swift 5.7+ 축약 문법
+                    if let name {
+                        print("이름: \\(name)")  // 같은 이름으로 바로 사용
                     }
 
                     // guard let (함수 내에서)
                     func greet(_ name: String?) {
                         guard let name else { return }
+                        // 이후 코드에서 name을 안전하게 사용
                         print("안녕, \\(name)!")
                     }
 
-                    // nil 병합 연산자
+                    // 여러 옵셔널 동시 바인딩
+                    let firstName: String? = "Kim"
+                    let lastName: String? = "Swift"
+                    if let first = firstName, let last = lastName {
+                        print("\\(first) \\(last)")  // 둘 다 있을 때만
+                    }
+
+                    // nil 병합 연산자 (??)
                     let displayName = name ?? "이름 없음"
+
+                    // 옵셔널 map
+                    let length: Int? = name.map { $0.count }
+                    // name이 nil이면 → nil
+                    // name이 "Swift"면 → Optional(5)
                     """
                 ),
                 LearningSection(
                     title: "옵셔널 체이닝",
                     content: """
-                    옵셔널 체이닝은 옵셔널 값의 프로퍼티나 메서드에 안전하게 접근하는 방법입니다. \
-                    중간에 nil이 있으면 전체 표현식이 nil을 반환합니다. \
-                    여러 단계의 옵셔널을 연쇄적으로 처리할 수 있어 코드가 깔끔해집니다.
+                    옵셔널 체이닝은 옵셔널 값의 프로퍼티나 메서드에 ?. 으로 안전하게 접근하는 방법입니다. \
+                    중간에 nil이 있으면 전체 표현식이 nil을 반환하고, 나머지 체인은 실행되지 않습니다.
+
+                    중요: 옵셔널 체이닝의 결과는 항상 옵셔널입니다. \
+                    원래 프로퍼티가 비옵셔널이더라도 체이닝을 거치면 옵셔널이 됩니다.
+
+                    메서드 호출에도 옵셔널 체이닝을 사용할 수 있습니다. \
+                    nil이면 메서드가 호출되지 않고, 있으면 정상 실행됩니다.
+
+                    서브스크립트, 프로퍼티 할당에도 체이닝이 가능합니다. \
+                    실전에서는 중첩된 모델 구조에서 깊은 값을 안전하게 꺼낼 때 자주 사용합니다.
                     """,
                     codeExample: """
+                    struct Address {
+                        var city: String
+                    }
+                    struct Person {
+                        var name: String
+                        var address: Address?
+
+                        func introduce() -> String {
+                            "저는 \\(name)입니다"
+                        }
+                    }
                     struct Company {
                         var ceo: Person?
                     }
 
-                    let company: Company? = Company(ceo: nil)
+                    let company: Company? = Company(
+                        ceo: Person(name: "Kim", address: nil)
+                    )
 
-                    // 옵셔널 체이닝
-                    let ceoName = company?.ceo?.name
-                    // company가 nil이면 → nil
-                    // ceo가 nil이면 → nil
-                    // 둘 다 있으면 → name 값
+                    // 프로퍼티 체이닝
+                    let ceoName = company?.ceo?.name       // Optional("Kim")
+                    let ceoCity = company?.ceo?.address?.city  // nil
+
+                    // 메서드 호출 체이닝
+                    let intro = company?.ceo?.introduce()   // Optional("저는 Kim입니다")
+
+                    // 체이닝 + nil 병합
+                    let city = company?.ceo?.address?.city ?? "주소 없음"
+
+                    // 체이닝으로 값 할당 (nil이면 무시됨)
+                    company?.ceo?.address?.city = "서울"
                     """
                 )
             ]
@@ -579,9 +661,20 @@ enum LearningGuideDataProvider {
                     title: "함수 기본",
                     content: """
                     함수는 특정 작업을 수행하는 코드 블록입니다. \
-                    func 키워드로 정의하며, 매개변수와 반환 타입을 지정할 수 있습니다. \
-                    Swift 함수는 외부 매개변수 이름(Argument Label)과 \
-                    내부 매개변수 이름(Parameter Name)을 구분할 수 있습니다.
+                    func 키워드로 정의하며, 매개변수와 반환 타입을 지정할 수 있습니다.
+
+                    Swift 함수의 특징:
+                    - Argument Label(외부 이름)과 Parameter Name(내부 이름)을 구분합니다.
+                    - _로 외부 이름을 생략할 수 있습니다.
+                    - 기본값(Default Value)을 지정하면 호출 시 생략 가능합니다.
+                    - 가변 매개변수(Variadic)는 ...으로 여러 값을 받습니다.
+                    - inout 매개변수는 함수 안에서 원본 값을 직접 변경합니다.
+
+                    튜플을 사용하면 여러 값을 한 번에 반환할 수 있습니다.
+
+                    Swift의 함수는 1급 시민(First-class Citizen)입니다. \
+                    변수에 할당하거나, 다른 함수의 인자로 전달할 수 있습니다. \
+                    함수 타입은 (매개변수 타입) -> 반환 타입으로 표현합니다.
                     """,
                     codeExample: """
                     // 기본 함수
@@ -596,60 +689,151 @@ enum LearningGuideDataProvider {
                     move(from: 0, to: 10)
 
                     // Argument Label 생략 (_)
-                    func square(_ n: Int) -> Int {
-                        n * n
-                    }
+                    func square(_ n: Int) -> Int { n * n }
                     square(5)  // 25
+
+                    // 기본값 매개변수
+                    func greet(_ name: String, emoji: String = "👋") {
+                        print("\\(emoji) \\(name)")
+                    }
+                    greet("Kim")              // 👋 Kim
+                    greet("Lee", emoji: "🎉") // 🎉 Lee
+
+                    // 가변 매개변수 (Variadic)
+                    func sum(_ numbers: Int...) -> Int {
+                        numbers.reduce(0, +)
+                    }
+                    sum(1, 2, 3, 4, 5)  // 15
+
+                    // inout: 원본 값 변경
+                    func doubleIt(_ value: inout Int) {
+                        value *= 2
+                    }
+                    var num = 10
+                    doubleIt(&num)  // num = 20 (&를 붙여 전달)
+
+                    // 여러 값 반환 (튜플)
+                    func minMax(_ arr: [Int]) -> (min: Int, max: Int) {
+                        (arr.min()!, arr.max()!)
+                    }
+                    let result = minMax([3, 1, 5])
+                    print(result.min)  // 1
+
+                    // 함수 타입
+                    let operation: (Int, Int) -> Int = { $0 + $1 }
                     """
                 ),
                 LearningSection(
                     title: "클로저 (Closure)",
                     content: """
                     클로저는 이름이 없는 함수입니다. \
-                    { (매개변수) -> 반환타입 in 본문 } 형태로 작성합니다. \
-                    변수에 할당하거나 함수의 인자로 전달할 수 있습니다. \
-                    주변 환경의 값을 캡처(Capture)할 수 있습니다. \
-                    Swift에서는 후행 클로저, 타입 추론 등으로 간결하게 작성할 수 있습니다.
+                    { (매개변수) -> 반환타입 in 본문 } 형태로 작성합니다.
+
+                    클로저는 1급 시민으로 변수에 할당하거나 함수 인자로 전달할 수 있습니다.
+
+                    Swift에서 클로저 축약 과정:
+                    1단계: 전체 형태 → { (a: Int, b: Int) -> Bool in return a < b }
+                    2단계: 타입 추론 → { a, b in return a < b }
+                    3단계: 단일 표현식 return 생략 → { a, b in a < b }
+                    4단계: 축약 인자($0, $1) → { $0 < $1 }
+
+                    후행 클로저(Trailing Closure): 마지막 매개변수가 클로저면 소괄호 밖에 작성합니다.
+
+                    값 캡처(Capture): 클로저는 주변 환경의 변수를 참조로 캡처합니다. \
+                    캡처된 변수는 원래 범위가 끝나도 클로저가 살아있는 한 유지됩니다.
+
+                    자주 쓰는 고차 함수: map(변환), filter(필터링), reduce(합산), \
+                    compactMap(nil 제거 + 변환), flatMap(중첩 배열 평탄화).
                     """,
                     codeExample: """
-                    // 기본 클로저
-                    let add = { (a: Int, b: Int) -> Int in
-                        return a + b
-                    }
-
-                    // 후행 클로저 + 축약
+                    // 클로저 축약 과정
                     let numbers = [3, 1, 4, 1, 5]
+
+                    // 전체 형태
+                    numbers.sorted(by: { (a: Int, b: Int) -> Bool in
+                        return a < b
+                    })
+                    // 최종 축약
+                    numbers.sorted { $0 < $1 }
+
+                    // 후행 클로저
                     let sorted = numbers.sorted { $0 < $1 }
 
                     // map, filter, reduce
-                    let doubled = numbers.map { $0 * 2 }
-                    let evens = numbers.filter { $0 % 2 == 0 }
-                    let sum = numbers.reduce(0) { $0 + $1 }
+                    let doubled = numbers.map { $0 * 2 }       // [6,2,8,2,10]
+                    let evens = numbers.filter { $0 % 2 == 0 } // [4]
+                    let sum = numbers.reduce(0) { $0 + $1 }    // 14
+
+                    // compactMap: nil 제거 + 변환
+                    let strings = ["1", "two", "3", "four"]
+                    let nums = strings.compactMap { Int($0) }  // [1, 3]
+
+                    // 값 캡처
+                    func makeCounter() -> () -> Int {
+                        var count = 0
+                        return {
+                            count += 1  // count를 캡처 (참조)
+                            return count
+                        }
+                    }
+                    let counter = makeCounter()
+                    counter()  // 1
+                    counter()  // 2 (count가 유지됨)
                     """
                 ),
                 LearningSection(
                     title: "@escaping 클로저",
                     content: """
-                    함수가 종료된 후에도 실행될 수 있는 클로저를 @escaping 클로저라고 합니다. \
-                    비동기 작업(네트워크 요청 등)에서 주로 사용됩니다. \
-                    클로저가 self를 캡처할 때 메모리 관리에 주의해야 합니다. \
-                    [weak self]를 사용하여 강한 참조 순환을 방지합니다.
+                    @escaping: 함수가 종료된 후에도 실행될 수 있는 클로저입니다. \
+                    비동기 작업(네트워크, 타이머 등)의 콜백에서 주로 사용됩니다. \
+                    클로저를 프로퍼티에 저장하거나 다른 함수에 전달할 때도 필요합니다.
+
+                    non-escaping(기본값): 함수 종료 전에 반드시 실행됩니다. \
+                    @escaping을 명시하지 않으면 자동으로 non-escaping입니다. \
+                    컴파일러가 메모리를 더 효율적으로 관리할 수 있습니다.
+
+                    @escaping 클로저에서 self를 캡처하면 강한 참조 순환이 발생할 수 있습니다. \
+                    [weak self]로 약한 참조를 사용하여 메모리 누수를 방지합니다. \
+                    guard let self else { return } 패턴으로 안전하게 사용합니다.
+
+                    @autoclosure: 표현식을 자동으로 클로저로 감쌉니다. \
+                    assert()처럼 조건이 참일 때 인자를 평가하지 않는 지연 평가에 유용합니다.
                     """,
                     codeExample: """
+                    // @escaping: 함수 종료 후 실행
                     func fetchData(completion: @escaping (String) -> Void) {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                             completion("데이터 로드 완료")
                         }
                     }
 
-                    // weak self로 순환 참조 방지
-                    class MyVC: UIViewController {
+                    // weak self 패턴 (메모리 누수 방지)
+                    class ProfileVC: UIViewController {
+                        var name = "Kim"
+
                         func load() {
                             fetchData { [weak self] result in
-                                self?.updateUI(with: result)
+                                guard let self else { return }
+                                // self가 해제되었으면 여기서 종료
+                                print("\\(self.name): \\(result)")
                             }
                         }
                     }
+
+                    // 프로퍼티에 클로저 저장 (@escaping 필요)
+                    class Button {
+                        var onTap: (() -> Void)?
+
+                        func setAction(_ action: @escaping () -> Void) {
+                            self.onTap = action  // 저장 → @escaping
+                        }
+                    }
+
+                    // @autoclosure
+                    func log(_ message: @autoclosure () -> String) {
+                        print(message())  // 호출 시점에 평가
+                    }
+                    log("현재 시각: \\(Date())")  // {}없이 사용 가능
                     """
                 )
             ]
@@ -669,21 +853,47 @@ enum LearningGuideDataProvider {
                 LearningSection(
                     title: "프로토콜이란?",
                     content: """
-                    프로토콜은 특정 역할을 수행하기 위해 필요한 메서드나 프로퍼티의 '약속'입니다. \
-                    클래스, 구조체, 열거형 모두 프로토콜을 채택(conform)할 수 있습니다. \
-                    Java의 인터페이스와 비슷하지만, Swift 프로토콜은 기본 구현을 제공할 수 있습니다.
+                    프로토콜은 특정 역할을 수행하기 위해 필요한 메서드나 프로퍼티의 '약속(청사진)'입니다. \
+                    클래스, 구조체, 열거형 모두 프로토콜을 채택(conform)할 수 있습니다.
+
+                    Java의 인터페이스와 비슷하지만, Swift 프로토콜은 기본 구현을 제공할 수 있어 더 강력합니다.
+
+                    프로퍼티 요구사항: { get }은 읽기만, { get set }은 읽기/쓰기를 요구합니다. \
+                    실제 구현에서 저장 프로퍼티든 연산 프로퍼티든 상관없습니다.
+
+                    프로토콜 합성(&): 여러 프로토콜을 동시에 요구할 수 있습니다. \
+                    함수 매개변수에서 Codable & Hashable처럼 사용합니다.
+
+                    AnyObject를 상속하면 클래스만 채택할 수 있는 프로토콜이 됩니다. \
+                    weak 참조가 필요한 delegate 패턴에서 자주 사용합니다.
                     """,
                     codeExample: """
                     protocol Drawable {
-                        var color: String { get }
+                        var color: String { get }       // 읽기 전용
+                        var lineWidth: Double { get set } // 읽기+쓰기
                         func draw()
                     }
 
                     struct Circle: Drawable {
                         var color: String
+                        var lineWidth: Double
                         func draw() {
-                            print("원 그리기: \\(color)")
+                            print("\\(lineWidth)pt \\(color) 원 그리기")
                         }
+                    }
+
+                    // 프로토콜 합성 (&)
+                    func save(_ item: Codable & Identifiable) {
+                        // Codable이면서 Identifiable인 타입만 받음
+                    }
+
+                    // 클래스 전용 프로토콜 (delegate 패턴)
+                    protocol ViewDelegate: AnyObject {
+                        func didTapButton()
+                    }
+
+                    class MyView {
+                        weak var delegate: ViewDelegate?  // weak 가능
                     }
                     """
                 ),
@@ -691,9 +901,18 @@ enum LearningGuideDataProvider {
                     title: "프로토콜 확장 (Extension)",
                     content: """
                     프로토콜 확장을 통해 기본 구현(Default Implementation)을 제공할 수 있습니다. \
-                    채택하는 타입이 해당 메서드를 구현하지 않으면 기본 구현이 사용됩니다. \
-                    이를 '프로토콜 지향 프로그래밍(POP)'이라 하며, \
-                    Swift의 핵심 프로그래밍 패러다임입니다.
+                    채택하는 타입이 해당 메서드를 구현하지 않으면 기본 구현이 사용됩니다.
+
+                    이것이 '프로토콜 지향 프로그래밍(POP)'의 핵심입니다. \
+                    클래스 상속 없이도 코드를 공유할 수 있어, 구조체와 열거형에서도 활용 가능합니다. \
+                    다이아몬드 상속 문제(다중 상속의 충돌)가 발생하지 않습니다.
+
+                    where절로 조건부 확장이 가능합니다. \
+                    특정 타입이 다른 프로토콜을 만족할 때만 기능을 추가할 수 있습니다. \
+                    예: Array의 Element가 Numeric일 때만 sum() 메서드 추가.
+
+                    기존 타입에 프로토콜 채택을 추가하는 것도 가능합니다(소급 모델링). \
+                    extension Int: CustomProtocol 처럼 기존 타입을 확장합니다.
                     """,
                     codeExample: """
                     protocol Greetable {
@@ -701,8 +920,9 @@ enum LearningGuideDataProvider {
                         func greet() -> String
                     }
 
+                    // 기본 구현 제공
                     extension Greetable {
-                        func greet() -> String {  // 기본 구현
+                        func greet() -> String {
                             "안녕, \\(name)!"
                         }
                     }
@@ -711,15 +931,50 @@ enum LearningGuideDataProvider {
                         var name: String
                         // greet() 구현 안 해도 OK (기본 구현 사용)
                     }
+
+                    struct VIPUser: Greetable {
+                        var name: String
+                        func greet() -> String {
+                            "환영합니다, \\(name)님!"  // 재정의
+                        }
+                    }
+
+                    // where절: 조건부 확장
+                    extension Array where Element: Numeric {
+                        func sum() -> Element {
+                            reduce(0, +)
+                        }
+                    }
+                    [1, 2, 3].sum()        // 6 (Int는 Numeric)
+                    // ["a", "b"].sum()     // 컴파일 에러 (String은 Numeric 아님)
+
+                    // 기존 타입에 프로토콜 채택 추가
+                    extension Int: Greetable {
+                        var name: String { "숫자 \\(self)" }
+                    }
+                    42.greet()  // "안녕, 숫자 42!"
                     """
                 ),
                 LearningSection(
                     title: "자주 쓰는 프로토콜",
                     content: """
-                    Identifiable: 고유 id 프로퍼티 요구. SwiftUI의 List, ForEach에서 필수입니다. \
-                    Codable: JSON 인코딩/디코딩을 위한 프로토콜입니다. \
+                    Swift 표준 라이브러리와 iOS SDK에서 자주 사용하는 프로토콜들입니다.
+
+                    Identifiable: 고유 id 프로퍼티 요구. SwiftUI의 List, ForEach에서 필수입니다.
+
+                    Codable: Encodable + Decodable의 조합. JSON 인코딩/디코딩에 사용합니다. \
+                    프로퍼티 이름이 JSON 키와 다르면 CodingKeys enum으로 매핑합니다.
+
                     Equatable: == 비교를 가능하게 합니다. \
-                    Hashable: 딕셔너리 키나 Set의 요소로 사용할 수 있게 합니다.
+                    모든 프로퍼티가 Equatable이면 자동 합성됩니다.
+
+                    Comparable: <, >, <=, >= 비교와 정렬이 가능해집니다.
+
+                    Hashable: Dictionary 키나 Set 요소로 사용할 수 있게 합니다. \
+                    Equatable을 포함합니다.
+
+                    CustomStringConvertible: description 프로퍼티로 \
+                    print() 출력 형식을 커스텀합니다.
                     """,
                     codeExample: """
                     struct Movie: Identifiable, Codable, Hashable {
@@ -729,10 +984,39 @@ enum LearningGuideDataProvider {
                     }
 
                     // Codable: JSON 변환
+                    let movie = Movie(id: UUID(), title: "기생충", year: 2019)
                     let json = try JSONEncoder().encode(movie)
                     let decoded = try JSONDecoder().decode(
                         Movie.self, from: json
                     )
+
+                    // CodingKeys: JSON 키 이름 매핑
+                    struct User: Codable {
+                        let name: String
+                        let profileURL: String
+
+                        enum CodingKeys: String, CodingKey {
+                            case name
+                            case profileURL = "profile_url"  // 스네이크케이스 매핑
+                        }
+                    }
+
+                    // Comparable: 정렬 가능
+                    struct Score: Comparable {
+                        let value: Int
+                        static func < (lhs: Score, rhs: Score) -> Bool {
+                            lhs.value < rhs.value
+                        }
+                    }
+                    [Score(value: 3), Score(value: 1)].sorted()
+
+                    // CustomStringConvertible
+                    extension Movie: CustomStringConvertible {
+                        var description: String {
+                            "\\(title) (\\(year))"
+                        }
+                    }
+                    print(movie)  // "기생충 (2019)"
                     """
                 )
             ]
@@ -753,65 +1037,201 @@ enum LearningGuideDataProvider {
                     title: "View 프로토콜과 body",
                     content: """
                     SwiftUI에서 모든 화면 요소는 View 프로토콜을 채택합니다. \
-                    body 프로퍼티에 화면에 표시할 내용을 선언합니다. \
-                    body는 'some View'를 반환하며, 이는 하나의 뷰를 의미합니다. \
-                    여러 뷰를 배치하려면 VStack, HStack, ZStack 등의 컨테이너를 사용합니다.
+                    body 프로퍼티에 화면에 표시할 내용을 선언적으로 작성합니다.
+
+                    some View는 Opaque Return Type으로, 구체적인 뷰 타입을 숨깁니다. \
+                    컴파일러가 실제 타입을 알고 있어 성능에 영향이 없습니다. \
+                    AnyView로 타입을 지우는 것은 성능이 떨어지므로 피하는 것이 좋습니다.
+
+                    @ViewBuilder: body는 암시적으로 @ViewBuilder가 적용되어 \
+                    여러 뷰를 나열할 수 있습니다. \
+                    if/else, switch 등 조건부 뷰도 작성할 수 있습니다.
+
+                    수정자(Modifier): .font(), .foregroundStyle() 등으로 뷰를 꾸밉니다. \
+                    수정자는 새로운 뷰를 반환하므로 순서가 중요합니다.
+
+                    서브뷰 분리: body가 복잡해지면 별도의 뷰 구조체로 분리합니다. \
+                    computed property나 함수로 분리하는 것보다 별도 struct가 권장됩니다.
                     """,
                     codeExample: """
                     struct ContentView: View {
+                        let isLoggedIn: Bool
+
                         var body: some View {
-                            VStack {
+                            VStack(spacing: 12) {
                                 Text("Hello, World!")
                                     .font(.title)
+                                    .bold()
                                 Image(systemName: "star.fill")
                                     .foregroundStyle(.yellow)
+                                    .font(.largeTitle)
+
+                                // 조건부 뷰 (@ViewBuilder)
+                                if isLoggedIn {
+                                    Text("환영합니다!")
+                                } else {
+                                    Button("로그인") { }
+                                }
                             }
+                            .padding()
                         }
                     }
+
+                    // 서브뷰 분리 (권장)
+                    struct StarBadge: View {
+                        let count: Int
+
+                        var body: some View {
+                            HStack {
+                                Image(systemName: "star.fill")
+                                Text("\\(count)")
+                            }
+                            .foregroundStyle(.yellow)
+                        }
+                    }
+
+                    // 수정자 순서가 중요!
+                    Text("Hello")
+                        .padding()            // 1. 안쪽 여백
+                        .background(.blue)    // 2. 여백 포함 배경
+                        .cornerRadius(8)      // 3. 모서리 둥글게
                     """
                 ),
                 LearningSection(
                     title: "레이아웃 (Stack, List)",
                     content: """
-                    VStack은 세로 배치, HStack은 가로 배치, ZStack은 겹치기입니다. \
-                    spacing으로 간격을, alignment로 정렬을 제어합니다. \
-                    List는 스크롤 가능한 목록을 만듭니다. \
-                    padding, frame 등의 수정자(modifier)로 크기와 여백을 조절합니다.
+                    Stack 레이아웃:
+                    - VStack: 세로 배치
+                    - HStack: 가로 배치
+                    - ZStack: 겹쳐서 배치 (뒤에서 앞으로)
+                    spacing으로 간격을, alignment로 정렬을 제어합니다.
+
+                    Spacer: 남은 공간을 차지하여 뷰를 밀어냅니다.
+
+                    ScrollView: 콘텐츠가 화면을 넘을 때 스크롤을 가능하게 합니다. \
+                    .vertical(기본) 또는 .horizontal 방향을 지정합니다.
+
+                    LazyVStack/LazyHStack: 화면에 보이는 항목만 렌더링합니다. \
+                    많은 데이터를 표시할 때 성능이 훨씬 좋습니다.
+
+                    List: UIKit의 UITableView에 해당합니다. \
+                    스크롤, 재사용, 스와이프 삭제 등이 기본 내장되어 있습니다.
+
+                    overlay/background: 뷰 위에 겹치거나 뒤에 배경을 추가합니다. \
+                    ZStack보다 특정 뷰에 종속된 레이어링에 적합합니다.
+
+                    frame: 뷰의 크기를 지정합니다. \
+                    .infinity로 가능한 최대 크기를 차지하게 할 수 있습니다.
                     """,
                     codeExample: """
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("제목")
-                            .font(.headline)
+                    // Stack + Spacer
+                    HStack {
+                        Text("왼쪽")
+                        Spacer()          // 남은 공간 차지
+                        Text("오른쪽")
+                    }
 
-                        HStack {
-                            Image(systemName: "person")
-                            Text("사용자")
+                    // ScrollView + LazyVStack (성능 최적화)
+                    ScrollView {
+                        LazyVStack(spacing: 8) {
+                            ForEach(items) { item in
+                                Text(item.name)
+                                    .frame(maxWidth: .infinity) // 최대 너비
+                                    .padding()
+                                    .background(.gray.opacity(0.1))
+                                    .cornerRadius(8)
+                            }
                         }
+                        .padding()
+                    }
 
-                        List(items) { item in
+                    // List (스와이프 삭제 포함)
+                    List {
+                        ForEach(items) { item in
                             Text(item.name)
                         }
+                        .onDelete { indexSet in
+                            items.remove(atOffsets: indexSet)
+                        }
                     }
-                    .padding()
+                    .listStyle(.insetGrouped)
+
+                    // overlay: 뱃지 붙이기
+                    Image(systemName: "bell")
+                        .overlay(alignment: .topTrailing) {
+                            Circle()
+                                .fill(.red)
+                                .frame(width: 8, height: 8)
+                        }
                     """
                 ),
                 LearningSection(
                     title: "버튼과 사용자 입력",
                     content: """
-                    Button은 탭 이벤트를 처리하는 기본 컴포넌트입니다. \
-                    TextField는 텍스트 입력, Toggle은 스위치, Slider는 범위 입력에 사용됩니다. \
-                    NavigationStack과 NavigationLink로 화면 간 이동을 구현합니다.
+                    Button: 탭 이벤트를 처리하는 기본 컴포넌트입니다. \
+                    .borderedProminent, .bordered 등의 스타일을 적용할 수 있습니다.
+
+                    TextField: 텍스트 입력 필드. $를 붙여 @State와 바인딩합니다. \
+                    Toggle: ON/OFF 스위치. Slider: 범위 내 값 선택. \
+                    Picker: 여러 선택지 중 하나를 고르는 컴포넌트입니다.
+
+                    NavigationStack: iOS 16+ 화면 이동의 기본 컨테이너입니다. \
+                    NavigationLink로 다음 화면을 push하고, 자동으로 뒤로가기 버튼이 생깁니다. \
+                    .navigationTitle()로 타이틀을 설정합니다.
+
+                    .sheet(): 아래에서 올라오는 모달 화면입니다. \
+                    .fullScreenCover(): 전체 화면을 덮는 모달입니다.
+
+                    .alert(): 경고 대화상자를 표시합니다. \
+                    .confirmationDialog(): 액션 시트(하단 선택지)를 표시합니다.
                     """,
                     codeExample: """
-                    Button("탭하세요") {
-                        print("버튼 눌림!")
+                    struct InputDemoView: View {
+                        @State private var name = ""
+                        @State private var isOn = false
+                        @State private var selected = "사과"
+                        @State private var showSheet = false
+                        @State private var showAlert = false
+                        let fruits = ["사과", "바나나", "딸기"]
+
+                        var body: some View {
+                            NavigationStack {
+                                Form {
+                                    // 텍스트 입력
+                                    TextField("이름 입력", text: $name)
+
+                                    // 토글
+                                    Toggle("알림 허용", isOn: $isOn)
+
+                                    // 피커
+                                    Picker("과일", selection: $selected) {
+                                        ForEach(fruits, id: \\.self) {
+                                            Text($0)
+                                        }
+                                    }
+
+                                    // 버튼
+                                    Button("시트 열기") {
+                                        showSheet = true
+                                    }
+                                    .buttonStyle(.borderedProminent)
+
+                                    // 화면 이동
+                                    NavigationLink("상세 화면") {
+                                        Text("상세 내용")
+                                    }
+                                }
+                                .navigationTitle("입력 데모")
+                                .sheet(isPresented: $showSheet) {
+                                    Text("모달 화면")
+                                }
+                                .alert("확인", isPresented: $showAlert) {
+                                    Button("확인") { }
+                                    Button("취소", role: .cancel) { }
+                                }
+                            }
+                        }
                     }
-                    .buttonStyle(.borderedProminent)
-
-                    TextField("이름 입력", text: $name)
-                        .textFieldStyle(.roundedBorder)
-
-                    Toggle("알림 허용", isOn: $isOn)
                     """
                 )
             ]
@@ -832,46 +1252,117 @@ enum LearningGuideDataProvider {
                     title: "@State",
                     content: """
                     @State는 뷰가 직접 소유하고 관리하는 상태입니다. \
-                    값이 변경되면 SwiftUI가 자동으로 화면을 다시 그립니다. \
+                    값이 변경되면 SwiftUI가 자동으로 body를 다시 계산하여 화면을 업데이트합니다.
+
+                    SwiftUI의 View는 struct(값 타입)이므로, 일반 프로퍼티는 변경할 수 없습니다. \
+                    @State는 실제 값을 SwiftUI 프레임워크가 별도로 관리하도록 하여 \
+                    뷰가 재생성되더라도 값이 유지됩니다.
+
+                    @State는 private으로 선언하는 것이 권장됩니다. \
+                    해당 뷰만 소유하고 관리하는 상태이기 때문입니다.
+
+                    일반 var 프로퍼티와의 차이: \
+                    일반 var는 뷰가 재생성될 때마다 초기값으로 리셋됩니다. \
+                    @State는 SwiftUI가 값을 보존하므로 사용자 인터랙션에 의한 변경이 유지됩니다.
+
                     주로 간단한 값 타입(Int, String, Bool 등)에 사용합니다. \
-                    private으로 선언하는 것이 권장됩니다.
+                    복잡한 모델은 @Observable 클래스로 분리하는 것이 좋습니다.
                     """,
                     codeExample: """
                     struct CounterView: View {
                         @State private var count = 0
+                        @State private var text = ""
+                        @State private var isExpanded = false
 
                         var body: some View {
-                            VStack {
+                            VStack(spacing: 16) {
+                                // 카운터
                                 Text("카운트: \\(count)")
-                                Button("증가") {
-                                    count += 1  // 화면 자동 업데이트
+                                    .font(.largeTitle)
+                                HStack {
+                                    Button("-") { count -= 1 }
+                                    Button("+") { count += 1 }
+                                }
+
+                                // 텍스트 입력
+                                TextField("입력", text: $text)
+                                Text("입력값: \\(text)")
+
+                                // 토글 애니메이션
+                                Button("토글") {
+                                    withAnimation {
+                                        isExpanded.toggle()
+                                    }
+                                }
+                                if isExpanded {
+                                    Text("펼쳐진 내용")
+                                        .transition(.slide)
                                 }
                             }
                         }
                     }
+
+                    // ❌ 일반 var는 뷰 재생성 시 리셋됨
+                    // var count = 0  // 버튼 눌러도 항상 0
                     """
                 ),
                 LearningSection(
                     title: "@Binding",
                     content: """
                     @Binding은 부모 뷰의 @State를 자식 뷰에서 읽고 쓸 수 있게 하는 연결고리입니다. \
-                    자식 뷰가 값을 소유하지 않고, 부모의 값을 참조합니다. \
-                    $를 붙여 바인딩을 전달합니다.
+                    자식 뷰가 값을 소유하지 않고, 부모의 값을 양방향으로 참조합니다.
+
+                    $를 붙여 바인딩을 전달합니다. \
+                    @State var count → $count가 Binding<Int> 타입입니다.
+
+                    .constant(): 미리보기(Preview)나 테스트에서 고정된 바인딩을 만듭니다. \
+                    값이 변경되지 않는 읽기 전용 바인딩입니다.
+
+                    커스텀 바인딩: Binding(get:set:)으로 직접 만들 수 있습니다. \
+                    값을 변환하거나 부수 효과를 추가할 때 유용합니다.
+
+                    @Binding은 private으로 선언하지 않습니다. \
+                    외부에서 주입받아야 하므로 접근 제어자를 붙이지 않습니다.
                     """,
                     codeExample: """
+                    // 부모 → 자식 바인딩 전달
                     struct ParentView: View {
-                        @State private var isOn = false
+                        @State private var volume = 50.0
 
                         var body: some View {
-                            ToggleView(isOn: $isOn)  // $ 로 바인딩 전달
+                            VStack {
+                                Text("볼륨: \\(Int(volume))")
+                                VolumeSlider(value: $volume)  // $ 바인딩
+                            }
                         }
                     }
 
-                    struct ToggleView: View {
-                        @Binding var isOn: Bool      // 부모의 값을 참조
+                    struct VolumeSlider: View {
+                        @Binding var value: Double  // 부모 값 참조
 
                         var body: some View {
-                            Toggle("스위치", isOn: $isOn)
+                            Slider(value: $value, in: 0...100)
+                        }
+                    }
+
+                    // Preview에서 .constant 사용
+                    #Preview {
+                        VolumeSlider(value: .constant(75))
+                    }
+
+                    // 커스텀 바인딩
+                    struct FilterView: View {
+                        @State private var rawText = ""
+
+                        var uppercasedBinding: Binding<String> {
+                            Binding(
+                                get: { rawText.uppercased() },
+                                set: { rawText = $0 }
+                            )
+                        }
+
+                        var body: some View {
+                            TextField("입력", text: uppercasedBinding)
                         }
                     }
                     """
@@ -880,27 +1371,89 @@ enum LearningGuideDataProvider {
                     title: "@Observable과 ViewModel",
                     content: """
                     iOS 17+에서 @Observable 매크로를 사용하면 클래스의 프로퍼티 변경을 \
-                    SwiftUI가 자동으로 감지합니다. \
-                    ViewModel 패턴에서 비즈니스 로직을 View에서 분리할 때 사용합니다. \
-                    View의 body에는 UI 코드만, 데이터 처리는 ViewModel에 작성합니다.
+                    SwiftUI가 자동으로 감지합니다. 별도의 Published 래퍼가 필요 없습니다.
+
+                    MVVM 패턴의 흐름:
+                    1. View: 화면을 그리고 사용자 입력을 받음
+                    2. ViewModel: 비즈니스 로직과 데이터 가공
+                    3. Model: 데이터 구조 정의
+                    View → ViewModel에 액션 전달 → 데이터 변경 → View 자동 업데이트
+
+                    @Observable vs ObservableObject(이전 방식):
+                    - @Observable: iOS 17+, 프로퍼티마다 자동 추적, @Published 불필요
+                    - ObservableObject: iOS 13+, @Published 명시 필요, @StateObject로 소유
+
+                    @Environment: 앱 전체에서 공유하는 데이터를 주입합니다. \
+                    상위 뷰에서 .environment()로 전달하면 하위 뷰 어디서든 접근 가능합니다. \
+                    ViewModel, 설정값, 테마 등을 전달할 때 유용합니다.
                     """,
                     codeExample: """
+                    // @Observable ViewModel (iOS 17+)
                     @Observable
                     class TodoViewModel {
                         var items: [String] = []
+                        var newItemText = ""
 
-                        func addItem(_ text: String) {
-                            items.append(text)
+                        var isEmpty: Bool { items.isEmpty }
+
+                        func addItem() {
+                            guard !newItemText.isEmpty else { return }
+                            items.append(newItemText)
+                            newItemText = ""
+                        }
+
+                        func removeItem(at index: Int) {
+                            items.remove(at: index)
                         }
                     }
 
+                    // View (UI만 담당)
                     struct TodoView: View {
                         @State private var viewModel = TodoViewModel()
 
                         var body: some View {
-                            List(viewModel.items, id: \\.self) {
-                                Text($0)
+                            NavigationStack {
+                                List {
+                                    ForEach(viewModel.items, id: \\.self) {
+                                        Text($0)
+                                    }
+                                    .onDelete { offsets in
+                                        offsets.forEach {
+                                            viewModel.removeItem(at: $0)
+                                        }
+                                    }
+                                }
+                                .overlay {
+                                    if viewModel.isEmpty {
+                                        Text("할 일을 추가하세요")
+                                    }
+                                }
+                                .toolbar {
+                                    TextField("새 항목", text:
+                                        $viewModel.newItemText)
+                                    Button("추가") {
+                                        viewModel.addItem()
+                                    }
+                                }
                             }
+                        }
+                    }
+
+                    // @Environment로 주입
+                    @Observable class AppSettings {
+                        var isDarkMode = false
+                    }
+
+                    // 상위 뷰에서 주입
+                    // ContentView()
+                    //     .environment(AppSettings())
+
+                    // 하위 뷰에서 사용
+                    struct SettingsView: View {
+                        @Environment(AppSettings.self) var settings
+                        var body: some View {
+                            Toggle("다크 모드", isOn:
+                                Bindable(settings).isDarkMode)
                         }
                     }
                     """
