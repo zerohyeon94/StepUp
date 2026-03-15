@@ -21,7 +21,7 @@ struct StepUpApp: App {
         // 2. self.modelContainer 대신 로컬 변수인 container를 사용합니다.
         Task { @MainActor in
             let context = container.mainContext
-            SwiftDataStack.seedInitialData(context: context)
+            SwiftDataStack.syncSeedData(context: context)
         }
     }
 

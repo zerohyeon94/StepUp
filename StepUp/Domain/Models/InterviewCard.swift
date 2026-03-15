@@ -11,6 +11,7 @@ import SwiftData
 @Model
 final class InterviewCard {
     var id: UUID
+    var stableId: String?
     var question: String
     var answer: String
     @Attribute var categoryRawValue: String
