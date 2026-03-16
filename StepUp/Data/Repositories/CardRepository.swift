@@ -26,6 +26,7 @@ final class CardRepository: CardRepositoryProtocol {
 
     func fetchAll() async throws -> [InterviewCard] {
         let descriptor = FetchDescriptor<InterviewCard>(
+            predicate: #Predicate<InterviewCard> { $0.isDeleted == false },
             sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
         )
         return try modelContext.fetch(descriptor)
@@ -34,7 +35,9 @@ final class CardRepository: CardRepositoryProtocol {
     func fetchByCategory(_ category: CardCategory) async throws -> [InterviewCard] {
         let rawValue = category.rawValue
         let descriptor = FetchDescriptor<InterviewCard>(
-            predicate: #Predicate { $0.categoryRawValue == rawValue },
+            predicate: #Predicate<InterviewCard> {
+                $0.isDeleted == false && $0.categoryRawValue == rawValue
+            },
             sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
         )
         return try modelContext.fetch(descriptor)
@@ -42,7 +45,9 @@ final class CardRepository: CardRepositoryProtocol {
 
     func fetchBookmarked() async throws -> [InterviewCard] {
         let descriptor = FetchDescriptor<InterviewCard>(
-            predicate: #Predicate { $0.isBookmarked },
+            predicate: #Predicate<InterviewCard> {
+                $0.isDeleted == false && $0.isBookmarked == true
+            },
             sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
         )
         return try modelContext.fetch(descriptor)
@@ -54,7 +59,8 @@ final class CardRepository: CardRepositoryProtocol {
     }
 
     func delete(_ card: InterviewCard) async throws {
-        modelContext.delete(card)
+        card.isDeleted = true
+        card.deletedAt = Date()
         try modelContext.save()
     }
 

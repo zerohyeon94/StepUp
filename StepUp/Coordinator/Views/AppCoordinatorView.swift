@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct AppCoordinatorView: View {
     @Bindable var coordinator: AppCoordinator
@@ -33,12 +34,22 @@ struct AppCoordinatorView: View {
     }
 }
 
-// MARK: - Settings Placeholder
+// MARK: - Settings
 
 private struct SettingsView: View {
+    @Environment(\.modelContext) private var modelContext
+
     var body: some View {
         NavigationStack {
             List {
+                Section("데이터 관리") {
+                    NavigationLink {
+                        TrashView(viewModel: TrashViewModel(modelContext: modelContext))
+                    } label: {
+                        Label("휴지통", systemImage: "trash")
+                    }
+                }
+
                 Section("앱 정보") {
                     LabeledContent("버전", value: "1.0.0")
                 }

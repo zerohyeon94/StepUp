@@ -16,6 +16,8 @@ final class InterviewCard {
     var answer: String
     @Attribute var categoryRawValue: String
     var isBookmarked: Bool
+    var isDeleted: Bool
+    var deletedAt: Date?
     @Attribute var miniProjectTypeRawValue: String?
     var createdAt: Date
 
@@ -43,6 +45,8 @@ final class InterviewCard {
         self.answer = answer
         self.categoryRawValue = category.rawValue
         self.isBookmarked = false
+        self.isDeleted = false
+        self.deletedAt = nil
         self.miniProjectTypeRawValue = miniProjectType?.rawValue
         self.createdAt = Date()
     }

@@ -52,9 +52,11 @@ final class CardListViewModel {
         error = nil
 
         do {
-            let descriptor = FetchDescriptor<InterviewCard>(
+            var descriptor = FetchDescriptor<InterviewCard>(
+                predicate: #Predicate<InterviewCard> { $0.isDeleted == false },
                 sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
             )
+            descriptor.fetchLimit = nil
             cards = try modelContext.fetch(descriptor)
         } catch {
             self.error = error
@@ -69,7 +71,8 @@ final class CardListViewModel {
     }
 
     func deleteCard(_ card: InterviewCard) {
-        modelContext.delete(card)
+        card.isDeleted = true
+        card.deletedAt = Date()
         try? modelContext.save()
         cards.removeAll { $0.id == card.id }
     }
