@@ -26,6 +26,7 @@ enum SwiftDataStack {
     @MainActor
     static func syncSeedData(context: ModelContext) {
         let seedCards = SeedCardData.allCards
+        let excludedIds = SeedCardExclusion.excludedIds()
 
         let descriptor = FetchDescriptor<InterviewCard>()
         let existingCards = (try? context.fetch(descriptor)) ?? []
@@ -36,6 +37,9 @@ enum SwiftDataStack {
         )
 
         for seed in seedCards {
+            // 사용자가 영구 삭제한 카드는 다시 생성하지 않음
+            guard !excludedIds.contains(seed.stableId) else { continue }
+
             if let existing = existingByStableId[seed.stableId] {
                 if existing.question != seed.question
                     || existing.answer != seed.answer

@@ -25,6 +25,11 @@ struct CardListView: View {
         .task {
             if viewModel == nil {
                 viewModel = CardListViewModel(modelContext: modelContext)
+            }
+            await viewModel?.loadCards()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .cardsDidChange)) { _ in
+            Task {
                 await viewModel?.loadCards()
             }
         }

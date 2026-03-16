@@ -46,9 +46,13 @@ final class TrashViewModel {
         card.deletedAt = nil
         try? modelContext.save()
         deletedCards.removeAll { $0.id == card.id }
+        notifyCardsChanged()
     }
 
     func permanentlyDelete(_ card: InterviewCard) {
+        if let stableId = card.stableId {
+            SeedCardExclusion.addExcludedId(stableId)
+        }
         modelContext.delete(card)
         try? modelContext.save()
         deletedCards.removeAll { $0.id == card.id }
@@ -61,13 +65,25 @@ final class TrashViewModel {
         }
         try? modelContext.save()
         deletedCards.removeAll()
+        notifyCardsChanged()
     }
 
     func emptyTrash() {
         for card in deletedCards {
+            if let stableId = card.stableId {
+                SeedCardExclusion.addExcludedId(stableId)
+            }
             modelContext.delete(card)
         }
         try? modelContext.save()
         deletedCards.removeAll()
     }
+
+    private func notifyCardsChanged() {
+        NotificationCenter.default.post(name: .cardsDidChange, object: nil)
+    }
+}
+
+extension Notification.Name {
+    static let cardsDidChange = Notification.Name("cardsDidChange")
 }
